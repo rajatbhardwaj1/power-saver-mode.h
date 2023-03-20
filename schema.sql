@@ -2,8 +2,7 @@ CREATE TABLE Person (
   kerberosID varchar PRIMARY KEY,
   name varchar,
   hostel varchar,
-  gender varchar,
-  email varchar
+  gender varchar
 );
 
 CREATE TABLE Groups (
