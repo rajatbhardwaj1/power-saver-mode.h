@@ -1,5 +1,5 @@
 INSERT INTO
-    Person
+    Comments 
 VALUES
     (
         :given_commentID,
