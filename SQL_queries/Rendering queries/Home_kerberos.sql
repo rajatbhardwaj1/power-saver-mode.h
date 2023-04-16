@@ -15,4 +15,4 @@ FROM
     Posts
 WHERE
     postedBy = :givenID
-    AND belongsToGroups IS NULL
+    AND belongsToGroups IS NULL;

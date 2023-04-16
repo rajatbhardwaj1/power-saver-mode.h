@@ -17,6 +17,6 @@ FROM
     Posts
     JOIN Friends ON Friends.Person2 = Posts.postedBy
 WHERE
-    Friends.Person1 = :given_person_ID
+    Friends.Person1 = :given_person_ID;
 
 

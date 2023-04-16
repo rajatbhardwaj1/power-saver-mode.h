@@ -15,5 +15,5 @@ FROM
     Friends
     JOIN Person ON Friends.Person2 = Person.KerberosID
 WHERE
-    Friends.Person1 = :given_person_ID
+    Friends.Person1 = :given_person_ID;
     

@@ -5,4 +5,4 @@ FROM
     Groups
     JOIN Person_Belongsto_Group ON Person_Belongsto_Group.GroupID = Groups.GroupID
 WHERE
-    Person_Belongsto_Group.KerberosID = :given_person_ID
+    Person_Belongsto_Group.KerberosID = :given_person_ID;

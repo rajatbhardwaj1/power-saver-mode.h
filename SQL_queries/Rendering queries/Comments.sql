@@ -5,5 +5,5 @@ FROM
     Person
     JOIN comments ON Person.kerberos_ID = comments.creatorPersonID 
 WHERE
-    comments.commentID = :given_post_or_commentID
+    comments.commentID = :given_post_or_commentID;
 

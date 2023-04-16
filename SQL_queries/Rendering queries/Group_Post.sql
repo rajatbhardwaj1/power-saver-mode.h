@@ -6,4 +6,4 @@ SELECT
 FROM
     Posts
 WHERE
-    BelongsToGroups = :given_group_ID
+    BelongsToGroups = :given_group_ID;
