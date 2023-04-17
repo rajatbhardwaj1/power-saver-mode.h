@@ -1,4 +1,4 @@
-Kerberos_ID,Name,Hostel,Gender
+kerberos_ID,name,Hostel,Gender
 am1200083,Chaitanay Mittal,Satpura,M
 am1200129,Shrijit Shaswat,Aravali,M
 am1200290,Samarthya Gupta,Shivalik,M
@@ -4905,7 +4905,7 @@ mt1221938,Shamil Mohammed,Shivalik,M
 mt1221939,Mukul Sahu,Vindhyachal,M
 mt1221940,Abhinav,Jwalamukhi,M
 mt1221941,Raman Jakhar,Shivalik,M
-mt1221942,Masarapu Suneel,Zanskar,M3
+mt1221942,Masarapu Suneel,Zanskar,M
 mt1221943,Nimkar Abhinav Yashwant,Vindhyachal,M
 mt1221944,Ayush Raj,Zanskar,M
 mt1221945,Raj Aryan,Shivalik,M

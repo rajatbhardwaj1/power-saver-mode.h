@@ -1,55 +1,55 @@
 CREATE TABLE Person (
-  kerberosID varchar PRIMARY KEY,
+  kerberosID char(10) PRIMARY KEY,
   name varchar,
   hostel varchar,
-  gender varchar
+  gender char(1)
 );
 
+CREATE TABLE Post(postID char(8) PRIMARY KEY,
+  image bytea,  
+  caption varchar,  
+  postedBy char(10),  
+  belongsToGroups char(8));
+
+
 CREATE TABLE Groups (
-  groupID varchar PRIMARY KEY,
-  type varchar,
-  hostel_department varchar,
+  groupID char(8) PRIMARY KEY,
+  type char(20),
+  hostel_department char(20),
   title varchar,
-  moderator varchar
+  moderator char(10)
 );
 
 CREATE TABLE Person_Belongsto_Group (
-  kerberosID varchar,
-  groupID varchar,
+  kerberosID char(10),
+  groupID char(8),
   PRIMARY KEY (kerberosID, groupID)
 );
 
-CREATE TABLE Posts (
-  postID varchar PRIMARY KEY,
-  imageURL varchar,
-  caption varchar,
-  postedBy varchar,
-  belongsToGroups varchar
-);
 
 CREATE TABLE Comments (
-  commentID varchar PRIMARY KEY,
+  commentID char(8) PRIMARY KEY,
   content varchar,
-  creatorPersonID varchar,
-  parentPostID varchar,
-  parentCommentID varchar
+  creatorPersonID char(10),
+  parentPostID char(8),
+  parentCommentID char(8)
 );
 
 CREATE TABLE Person_Likes_Post (
-  kerberosID varchar,
-  postID varchar,
+  kerberosID char(8),
+  postID char(8),
   PRIMARY KEY (kerberosID, postID)
 );
 
 CREATE TABLE Person_Likes_Comment (
-  kerberosID varchar,
-  commentID varchar,
+  kerberosID char(10),
+  commentID char(8),
   PRIMARY KEY (kerberosID, commentID)
 );
 
 CREATE TABLE Friends (
-  person1 varchar,
-  person2 varchar,
+  person1 char(10),
+  person2 char(10),
   PRIMARY KEY (person1, person2)
 );
 
@@ -59,19 +59,19 @@ ALTER TABLE Person_Belongsto_Group ADD FOREIGN KEY (kerberosID) REFERENCES Perso
 
 ALTER TABLE Person_Belongsto_Group ADD FOREIGN KEY (groupID) REFERENCES Groups (groupID);
 
-ALTER TABLE Posts ADD FOREIGN KEY (postedBy) REFERENCES Person (kerberosID);
+ALTER TABLE Post ADD FOREIGN KEY (postedBy) REFERENCES Person (kerberosID);
 
-ALTER TABLE Posts ADD FOREIGN KEY (belongsToGroups) REFERENCES Groups (groupID);
+ALTER TABLE Post ADD FOREIGN KEY (belongsToGroups) REFERENCES Groups (groupID);
 
 ALTER TABLE Comments ADD FOREIGN KEY (creatorPersonID) REFERENCES Person (kerberosID);
 
-ALTER TABLE Comments ADD FOREIGN KEY (parentPostID) REFERENCES Posts (postID);
+ALTER TABLE Comments ADD FOREIGN KEY (parentPostID) REFERENCES Post (postID);
 
 ALTER TABLE Comments ADD FOREIGN KEY (parentCommentID) REFERENCES Comments (commentID);
 
 ALTER TABLE Person_Likes_Post ADD FOREIGN KEY (kerberosID) REFERENCES Person (kerberosID);
 
-ALTER TABLE Person_Likes_Post ADD FOREIGN KEY (postID) REFERENCES Posts (postID);
+ALTER TABLE Person_Likes_Post ADD FOREIGN KEY (postID) REFERENCES Post (postID);
 
 ALTER TABLE Person_Likes_Comment ADD FOREIGN KEY (kerberosID) REFERENCES Person (kerberosID);
 

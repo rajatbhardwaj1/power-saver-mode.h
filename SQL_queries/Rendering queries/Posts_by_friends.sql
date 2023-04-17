@@ -1,6 +1,6 @@
 -- list of posts by all the friends of a person
 SELECT
-    Posts.imageURL,
+    Posts.image,
     Posts.cation,
     Posts.postedBy
 FROM
@@ -10,7 +10,7 @@ WHERE
     Friends.Person2 = :given_person_ID
 UNION
 SELECT
-    Posts.imageURL,
+    Posts.image,
     Posts.cation,
     Posts.postedBy
 FROM

@@ -9,7 +9,7 @@ WHERE
 
 /* Rendering Posts  */
 SELECT
-    imageURL,
+    image,
     caption
 FROM
     Posts

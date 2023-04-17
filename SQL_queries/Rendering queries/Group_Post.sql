@@ -1,6 +1,6 @@
 -- list of posts in a particular group
 SELECT
-    imageURL,
+    image,
     caption,
     postedBy
 FROM

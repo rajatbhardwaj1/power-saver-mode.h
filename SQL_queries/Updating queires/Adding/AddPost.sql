@@ -3,7 +3,7 @@ INSERT INTO
 VALUES
     (
         :given_postID,
-        :given_imageURL,
+        :given_image,
         :given_postedBy,
         :given_BelongstoGroup
     );
