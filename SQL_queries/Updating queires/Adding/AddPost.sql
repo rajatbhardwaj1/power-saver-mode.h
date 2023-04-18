@@ -1,5 +1,5 @@
 INSERT INTO
-    Posts
+    post
 VALUES
     (
         :given_postID,

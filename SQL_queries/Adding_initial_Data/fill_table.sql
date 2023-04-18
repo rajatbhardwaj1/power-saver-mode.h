@@ -5,4 +5,4 @@ COPY Comments from '/home/project/power-saver-mode.h/data/Comments.csv' DELIMITE
 COPY Person_Likes_Post from '/home/project/power-saver-mode.h/data/Person_Likes_Post.csv' DELIMITER ',' CSV HEADER;
 COPY Person_Likes_Comment from '/home/project/power-saver-mode.h/data/Person_Likes_Comment.csv' DELIMITER ',' CSV HEADER;
 COPY Friends from '/home/project/power-saver-mode.h/data/Friends.csv' DELIMITER ',' CSV HEADER;
-COPY Posts from '/home/project/power-saver-mode.h/data/Posts.csv' DELIMITER ',' CSV HEADER; -> # wrote a python script for this because image needed to also be inserted
+COPY post from '/home/project/power-saver-mode.h/data/post.csv' DELIMITER ',' CSV HEADER; -> # wrote a python script for this because image needed to also be inserted

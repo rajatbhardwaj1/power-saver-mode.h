@@ -1,9 +1,9 @@
--- list of posts in a particular group
+-- list of post in a particular group
 SELECT
     image,
     caption,
     postedBy
 FROM
-    Posts
+    post
 WHERE
     BelongsToGroups = :given_group_ID;

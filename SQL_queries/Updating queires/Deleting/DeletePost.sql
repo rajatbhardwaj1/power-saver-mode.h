@@ -1,4 +1,4 @@
 DELETE FROM
-    Posts
+    post
 WHERE 
     postID = :given_postID;

@@ -7,3 +7,4 @@ FROM
     JOIN Person_Belongsto_Group ON Person.KerberosID = Person_Belongsto_Group.KerberosID
 WHERE
     Person_Belongsto_Group.GroupID = :given_group_ID;
+    

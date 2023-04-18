@@ -1,18 +1,18 @@
 /* Rendering person's name and Kerberos*/
 SELECT
     Name,
-    Kerberos_ID
+    kerberosid
 FROM
     Person
 WHERE
-    kerberos_ID = :givenID;
+    kerberosid = :givenID;
 
-/* Rendering Posts  */
+/* Rendering post  */
 SELECT
     image,
     caption
 FROM
-    Posts
+    post
 WHERE
     postedBy = :givenID
     AND belongsToGroups IS NULL;

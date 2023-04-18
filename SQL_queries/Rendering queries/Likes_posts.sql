@@ -3,6 +3,6 @@ SELECT
     Name
 FROM
     Person
-    JOIN Person_Likes_Post ON Person.kerberos_ID = Person_Likes_Post.kerberos_ID 
+    JOIN Person_Likes_Post ON Person.kerberosID = Person_Likes_Post.kerberosID 
 WHERE
     Person_Likes_Post.postID = :givenPostID;

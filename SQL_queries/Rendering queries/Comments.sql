@@ -3,7 +3,10 @@ SELECT
     Name , content 
 FROM
     Person
-    JOIN comments ON Person.kerberos_ID = comments.creatorPersonID 
+    JOIN comments ON Person.kerberosid = comments.creatorPersonID 
 WHERE
-    comments.commentID = :given_post_or_commentID;
+    comments.parentpostid = :given_post_or_commentID
+    OR 
+    comments.parentcommentid = :given_post_or_commentID;
+
 

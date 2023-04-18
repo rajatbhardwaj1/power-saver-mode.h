@@ -1,21 +1,21 @@
--- list of posts by all the friends of a person
+-- list of post by all the friends of a person
 SELECT
-    Posts.image,
-    Posts.cation,
-    Posts.postedBy
+    post.image,
+    post.caption,
+    post.postedBy
 FROM
-    Posts
-    JOIN Friends ON Friends.Person1 = Posts.postedBy
+    post
+    JOIN Friends ON Friends.Person1 = post.postedBy
 WHERE
     Friends.Person2 = :given_person_ID
 UNION
 SELECT
-    Posts.image,
-    Posts.cation,
-    Posts.postedBy
+    post.image,
+    post.caption,
+    post.postedBy
 FROM
-    Posts
-    JOIN Friends ON Friends.Person2 = Posts.postedBy
+    post
+    JOIN Friends ON Friends.Person2 = post.postedBy
 WHERE
     Friends.Person1 = :given_person_ID;
 

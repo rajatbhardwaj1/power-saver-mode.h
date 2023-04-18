@@ -1,5 +1,5 @@
 DELETE FROM
     Person_Likes_Post
 WHERE
-    kerberos_ID = :kerberosID
+    kerberosid = :kerberosID
     AND postID = :PostID;
