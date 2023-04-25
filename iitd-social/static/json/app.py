@@ -70,6 +70,10 @@ def Login():
     return redirect(url_for('Home') )
 
 
+@app.route("/groups", methods = ['POST'])
+def Groups():
+    render_template("groups.html")
+
 
 @app.route("/home", methods = ['GET' , "POST"])
 def Home():
@@ -92,17 +96,10 @@ def Chat():
 
 
 @app.route("/chats")
-def Chats():
+def index():
     with open("static/json/groups.json", "r") as f:
         groups = json.load(f)
     return render_template("chats.html", groups=groups)
-
-
-@app.route("/groups")
-def Groups():
-    with open("static/json/groups.json", "r") as f:
-        groups = json.load(f)
-    return render_template("groups.html", groups=groups)
 
 
 @app.route("/navbar")

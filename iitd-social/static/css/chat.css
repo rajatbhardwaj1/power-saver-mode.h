@@ -1,0 +1,96 @@
+/* Define common values as CSS variables */
+:root {
+    --primary-color: #008CBA;
+    --secondary-color: #eee;
+    --text-color: #333;
+    --font-size: 16px;
+    --border-radius: 5px;
+    --padding: 10px;
+  }
+  
+  .chat-box {
+    width: 800px;
+    height: 90vh;
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+  }
+  
+  .chat-box-header {
+    padding: var(--padding);
+    font-size: calc(var(--font-size) + 2px);
+    font-weight: bold;
+    border-bottom: 1px solid var(--secondary-color);
+  }
+  
+  .chat-box-body {
+    padding: var(--padding);
+  }
+  
+  .chat-bubble {
+    display: block;
+    max-width: 70%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    line-height: 1.4;
+    clear: both;
+  }
+  .chat-bubble.sent {
+    background-color: var(--primary-color);
+    float: right;
+    color: #fff;
+  }
+  
+  .chat-bubble.received {
+    background-color: var(--secondary-color);
+    float: left;
+    color: var(--text-color);
+  }
+
+  .chat-bubble:hover {
+    cursor: pointer;
+  }
+  
+  .chat-box-footer {
+    padding: var(--padding);
+    border-top: 1px solid var(--secondary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .chat-box-footer input[type="text"] {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: var(--padding);
+    font-size: var(--font-size);
+    border-radius: var(--border-radius);
+  }
+  
+  .chat-box-footer button {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: var(--padding);
+    border-radius: var(--border-radius);
+    margin-left: var(--padding);
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .chat-box-footer button:hover,
+  .chat-box-footer button:active {
+    background-color: #006c84;
+  }
+  
+  .chat-box-footer button i {
+    font-size: calc(var(--font-size) + 2px);
+  }
+  

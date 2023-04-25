@@ -1,0 +1,86 @@
+<html>
+
+    <nav class="navbar">
+        <div class="navbar-left">
+            <i class="fa fa-user navbar-icon"></i>
+            <h3 class="navbar-brand">IITD-Social</h3>
+        </div>
+    <div class="navbar-middle">
+        <input type="text" class="navbar-search" placeholder="Search...">
+        <button class="navbar-search-button">
+            <i class="fa fa-search navbar-search-icon"></i>
+        </button>
+    </div>
+    <div class="navbar-right">
+        <a href="/chats" class="navbar-link">Chats</a>
+        <a href="/groups" class="navbar-link">Groups</a>
+        <a href="/profile" class="navbar-link">Profile</a>
+    </div>
+</nav>
+{% block content %}
+
+{% endblock  %}
+</html>
+<style>
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #ffffff;
+      padding: 10px 0; /* Added vertical padding */
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
+    }
+    
+    .navbar-left {
+      display: flex;
+      align-items: center;
+    }
+    
+    .navbar-icon {
+      font-size: 24px;
+      color: #000000;
+      margin-right: 10px;
+    }
+    
+    .navbar-brand {
+      font-size: 24px;
+      color: #000000;
+      margin: 0;
+    }
+    
+    .navbar-middle {
+      display: flex;
+      align-items: center;
+    }
+    
+    .navbar-search {
+      border: none;
+      border-bottom: 2px solid #000000;
+      padding: 5px;
+      margin-right: 10px;
+      font-size: 16px;
+    }
+    
+    .navbar-search-button {
+      border: none;
+      background-color: transparent;
+      cursor: pointer;
+    }
+    
+    .navbar-search-icon {
+      font-size: 20px;
+      color: #000000;
+    }
+    
+    .navbar-right {
+      display: flex;
+      align-items: center;
+    }
+    
+    .navbar-link {
+      font-size: 20px;
+      color: #000000;
+      margin-right: 10px;
+      text-decoration: none;
+    }
+</style>

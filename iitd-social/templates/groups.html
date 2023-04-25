@@ -1,24 +1,26 @@
+
+<!DOCTYPE html>
+
+{%  extends "index.html"%}
+{% block content %}
+<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Hello HTML Templates</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/group.css') }}">
-    
-    </head>
-    <div className="container">
-        <div className="groups-container">
-            {% block content %}
-            
-            {%end block%}
-            {groups.map(group => {
-                return (
-                    <div className="group-box" key={group.id}>
-                        <center><div className="group-title">Title: {group.title}</div></center>
-                        <center><div className="group-content">Type: {group.Type}</div></center>
-                    </div>
-                )
-            })}
-        </div>
+  <head>
+    <title>Groups</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/groups.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <div class="groups-container">
+        {% for group in groups %}
+          <div class="group-box">
+            <center><div class="group-title">Title: {{ group.title }}</div></center>
+            <center><div class="group-content">Type: {{ group.Type }}</div></center>
+          </div>
+        {% endfor %}
+      </div>
     </div>
+  </body>
 </html>
+
+{% endblock %}

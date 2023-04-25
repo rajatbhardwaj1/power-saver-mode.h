@@ -1,0 +1,22 @@
+[
+    {
+        "id":1,
+        "title": "Group Name 1 ",
+        "Type" : "blah blah blah lol"
+    },
+    {
+        "id":2,
+        "title": "Group Name 2",
+        "Type" : "blah blah blah lol2"
+    },
+    {
+        "id":3,
+        "title": "Group Name 3",
+        "Type" : "blah blah blah lol3"
+    },
+    {
+        "id":4,
+        "title": "Group Name 4",
+        "Type" : "blah blah blah lol4"
+    }
+]
