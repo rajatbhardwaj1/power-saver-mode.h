@@ -9,7 +9,6 @@ function Groups() {
                 {groups.map(group => {
                     return (
                         <div className="group-box" key={group.id}>
-
                             <center><div className="group-title">Title: {group.title}</div></center>
                             <center><div className="group-content">Type: {group.Type}</div></center>
                         </div>
