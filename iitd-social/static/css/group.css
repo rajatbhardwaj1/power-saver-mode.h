@@ -1,0 +1,73 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    padding: 0 20px;
+    background-size: cover;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    }
+    
+    .groups-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    }
+    
+    .group-box {
+    width: 500%;
+    height: 50px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer; /* <-- Add cursor pointer */
+    }
+    
+    .group-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    background-color: #f2f2f2; /* <-- Add background color on hover */
+    }
+    
+    .group-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333; /* <-- Add font color */
+    }
+    
+    .group-content {
+    font-size: 16px;
+    font-weight: normal;
+    color: #666; /* <-- Add font color */
+    }
+    
+    .group-icon {
+    font-size: 24px;
+    margin-right: 10px;
+    color: #999; /* <-- Add font color */
+    }
+    
+    .button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    }
+    
+    .button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
