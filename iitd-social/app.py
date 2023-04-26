@@ -3,6 +3,8 @@ from flask import request
 import psycopg2
 import json
 import random 
+from PIL import Image
+from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = 'somesecretkey'
@@ -20,14 +22,8 @@ conn = psycopg2.connect(
     user = 'group_19',
     password = 'B0jzmL6aEhxI21'
 )
-# conn = psycopg2.connect(
-#     database = 'dbmsproject',
-#     host = 'localhost',
-#     port = '5432',
-#     user = 'postgres',
-# )
+
 curr = conn.cursor()
-#cur.execute("SELECT image FROM post WHERE postid = %s;", ("P0000040",))
 
 
 @app.route("/create-account", methods = ['GET' , "POST"])
@@ -44,7 +40,6 @@ def CreateAccount():
 
         if count[0][0] > 0:
             flash("user already exists" , 'warning')
-            print("user already exists")
             return redirect(url_for('CreateAccount'))
         elif len(username) != 9:
             flash("Enter 9 character kerberos ID" , 'warning')
@@ -57,6 +52,7 @@ def CreateAccount():
             return redirect(url_for('CreateAccount'))
         else :
             session['user_id'] = username 
+            session['user_name'] = name 
             curr.execute("insert into person values(%s,%s,%s%s);", (username, name ,hostel ,gender,))
             conn.commit()
             return redirect(url_for('Home') )
@@ -70,14 +66,15 @@ def Login():
     session.pop('user_id' , None)
     username = request.form['username']
     password = request.form['password']
-    print(type(username))
     curr.execute("SELECT count(*) FROM person WHERE kerberosid = %s;", (username,))
     count = curr.fetchall()
-    print(count)
     if count[0][0] != 1:
         flash("Login Failed!",'warning')
         return redirect(url_for('Login') )
+    curr.execute("select name from person where kerberosid=%s;",(username,))
+    name = curr.fetchone()
     session['user_id'] = username
+    session['name'] = name[0]
     flash('You have successfully logged in', 'success')
     return redirect(url_for('Home') )
 
@@ -140,6 +137,9 @@ def Home():
 @app.route('/profile')
 def Profile():
     cur = conn.cursor()
+    cur.execute("select count(*) from friends where person1 = %s or person2 = %s;" ,(session['user_id'],session['user_id']))
+    friends = cur.fetchone()[0]
+
     cur.execute('''SELECT
                         post.postid,
                         post.postedby,
@@ -162,10 +162,10 @@ def Profile():
                         post.postid;
 ''', (session['user_id'],session['user_id'],))
     images = cur.fetchall()
-    
+        
     
     cur.close()
-    return render_template('profile.html', images=images)
+    return render_template('profile.html',kerberosid=session['user_id'],username=session['name'], images=images, friends = friends)
 
 
 @app.route('/home/<image_id>', methods=['GET', 'POST'])
@@ -181,12 +181,12 @@ def get_image(image_id):
 @app.route('/home/likes/<image_id>', methods=['POST'])
 def get_likes(image_id):
     cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM person_likes_post WHERE kerberosid = %s AND postid = %s", ("ee1210653", image_id))
+    cur.execute("SELECT COUNT(*) FROM person_likes_post WHERE kerberosid = %s AND postid = %s", (session['user_id'], image_id))
     count = cur.fetchone()[0]
     if count == 0:
-        cur.execute("INSERT INTO person_likes_post (kerberosid, postid) VALUES (%s, %s)", ("ee1210653", image_id))
+        cur.execute("INSERT INTO person_likes_post (kerberosid, postid) VALUES (%s, %s)", (session['user_id'], image_id))
     else:
-        cur.execute("DELETE FROM person_likes_post WHERE kerberosid = %s AND postid = %s", ("ee1210653", image_id))
+        cur.execute("DELETE FROM person_likes_post WHERE kerberosid = %s AND postid = %s", (session['user_id'], image_id))
     conn.commit()
 
     cur.execute("SELECT COUNT(*) FROM person_likes_post WHERE postid = %s", (image_id,))
@@ -211,7 +211,7 @@ def get_comments(image_id):
         comment = request.form['comment']
         cur = conn.cursor()
         cur.execute("INSERT INTO comments (commentid, content, creatorpersonid, parentpostid) VALUES (%s, %s, %s, %s)", ( id , comment, session['user_id'], image_id))
-        # conn.commit()
+        conn.commit()
 
     # Retrieve all comments for the given image ID
     cur = conn.cursor()
@@ -242,8 +242,9 @@ def Chats():
 
 @app.route("/groups")
 def Groups():
-    with open("static/json/groups.json", "r") as f:
-        groups = json.load(f)
+    cur = conn.cursor()
+    cur.execute("select title, type from groups join person_belongsto_group on kerberosid = %s and person_belongsto_group.groupid = groups.groupid;" ,(session['user_id'],))
+    groups = cur.fetchall()
     return render_template("groups.html", groups=groups)
 
 
@@ -259,10 +260,44 @@ def Search():
     users = cur.fetchall()
     return render_template("search.html", users=users)
 
+@app.route('/post-upload', methods=['GET', 'POST'])
+def post_upload():
+    if request.method != 'POST':
+        return render_template('post_upload.html')
+    id = randomIDcreator("P")
+    exist = True
+    while exist:  
+        cur = conn.cursor()
+        cur.execute("select count(*) from post where postid = %s;", (id, ))
+        num = cur.fetchone()
+        if num[0] == 0:
+            exist = False  
+        else :
+            id = randomIDcreator("P")
+    file = request.files['file']
+    image_data1 = Image.open(file)
+    buffer = BytesIO()
+    quality = 10
+    image_data1.save(buffer, format='JPEG', optimize=True, quality=quality)
+    image_data = buffer.getvalue()
+    caption = request.form['caption']
+
+    curr.execute("INSERT INTO post values(%s, %s, %s, %s)" , (id ,image_data, caption, session['user_id']) )
+    conn.commit()
+    return redirect(url_for('Profile'))
+    
+        
+
 
 @app.route("/FriendsProfile/<kerberosid>" , methods = ['GET','POST'])
 def FriendsProfile(kerberosid):
+
     cur = conn.cursor()
+    cur.execute("select count(*) from friends where person1 = %s or person2 = %s;" ,(kerberosid,kerberosid,))
+    friends = cur.fetchone()[0]
+    cur.execute("select name from person where kerberosid = %s ;" ,(kerberosid,))
+
+    name = cur.fetchone()[0]
     cur.execute('''SELECT
                         post.postid,
                         post.postedby,
@@ -285,13 +320,10 @@ def FriendsProfile(kerberosid):
                         post.postid;
 ''', (session['user_id'],kerberosid,))
     images = cur.fetchall()
-    
-    
     cur.close()
-    return render_template('profile.html', images=images)
+    return render_template('profile.html',kerberosid=kerberosid,username=name,images=images,friends = friends)
 
-if __name__ == "__main__": 
-    app.run(debug=True)
+
 
 if __name__ == '__main__':
     

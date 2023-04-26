@@ -6,12 +6,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 </head>
 <center>
-
-    <h1>Home</h1>
+    <h1>Name: {{username}}</h1>
+    <h1>Kerberosid: {{kerberosid}}</h1>
+    <h1>Friends : {{friends}}</h1>
+    <a href="{{url_for('post_upload')}}"><button>Upload</button></a>
 </center>
   {% for image in images %}
   <center>
-
     <div class="image-container">
       <img src="{{ url_for('get_image', image_id=image[0]) }}">
       <div class="image-info">
@@ -30,8 +31,7 @@
                 Comments
             </button>
           </form>
-          
-          
+                  
           <p class="like-count">{{ image[2] }} likes</p>
         </div>
       </div>

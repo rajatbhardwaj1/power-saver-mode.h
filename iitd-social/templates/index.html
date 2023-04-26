@@ -1,8 +1,18 @@
 <html>
+  <head>
+    <script>
+      function redirect_fun() {
+        var url = "{{ url_for('Home')}}";
+        window.location.href = url;
+      }
+    </script>
+  </head>
   <nav class="navbar">
     <div class="navbar-left">
         <i class="fa fa-user navbar-icon"></i>
-        <h3 class="navbar-brand">IITD-Social</h3>
+    <div class="search1" onclick="redirect_fun()">
+          <h3 class="navbar-brand">IITD-Social</h3>
+        </div>
     </div>
 <div class="navbar-middle">
   <form id="navbar" class="navbar" method="POST" action="{{ url_for('Search') }}">
@@ -83,5 +93,8 @@
       color: #000000;
       margin-right: 10px;
       text-decoration: none;
+    }
+    .search1{
+      cursor: pointer;
     }
 </style>

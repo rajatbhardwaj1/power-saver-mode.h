@@ -14,8 +14,8 @@
       <div class="groups-container">
         {% for group in groups %}
           <div class="group-box">
-            <center><div class="group-title">Title: {{ group.title }}</div></center>
-            <center><div class="group-content">Type: {{ group.Type }}</div></center>
+            <center><div class="group-title">Title: {{ group[0] }}</div></center>
+            <center><div class="group-content">Type: {{ group[1] }}</div></center>
           </div>
         {% endfor %}
       </div>

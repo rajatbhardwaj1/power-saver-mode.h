@@ -4,16 +4,32 @@
 <head>
   <title>Chats</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/comments.css') }}">
-
+  <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      setInterval(function() {
+        $.ajax({
+          url: window.location.href,
+          type: "GET",
+          cache: false,
+          success: function(data) {
+            $("body").html(data);
+          }
+        });
+      }, 5000);
+    });
+  </script> -->
 </head>
+<body>
   <h1>Comments</h1>
-
+  
   {% for comment in comments %}
     <div class="comment">
       <p>{{ comment[0] }}</p>
       <p>Posted by: {{ comment[1] }}</p>
     </div>
   {% endfor %}
+</body>
 
   <form method="post">
     <label for="comment">Add a comment:</label>
