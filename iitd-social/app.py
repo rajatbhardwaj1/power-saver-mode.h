@@ -20,6 +20,12 @@ conn = psycopg2.connect(
     user = 'group_19',
     password = 'B0jzmL6aEhxI21'
 )
+# conn = psycopg2.connect(
+#     database = 'dbmsproject',
+#     host = 'localhost',
+#     port = '5432',
+#     user = 'postgres',
+# )
 curr = conn.cursor()
 #cur.execute("SELECT image FROM post WHERE postid = %s;", ("P0000040",))
 
@@ -93,6 +99,60 @@ def Home():
                         AND person_likes_post.kerberosID = %s) AS user_like_count
                     FROM
                         post
+                        JOIN person_likes_post ON post.postid = person_likes_post.postid
+                        JOIN person ON person_likes_post.kerberosid = person.kerberosid
+                        JOIN friends on friends.person1 = post.postedby
+                    WHERE
+                        post.belongstogroups IS NULL
+                        AND friends.person2 = %s
+                    GROUP BY
+                        post.postid
+                    union
+                    SELECT
+                        post.postid,
+                        post.postedby,
+                        COUNT(person_likes_post.kerberosid) AS like_count,
+                        post.caption,
+                        (select
+                             COUNT(*) 
+                        FROM 
+                        person_likes_post 
+                        WHERE post.postid = person_likes_post.postid 
+                        AND person_likes_post.kerberosID = %s) AS user_like_count
+                    FROM
+                        post
+                        JOIN person_likes_post ON post.postid = person_likes_post.postid
+                        JOIN person ON person_likes_post.kerberosid = person.kerberosid
+                        JOIN friends on friends.person2 = post.postedby
+                    WHERE
+                        post.belongstogroups IS NULL
+                        AND friends.person1 = %s
+                    GROUP BY
+                        post.postid;
+''', (session['user_id'],session['user_id'],session['user_id'],session['user_id'],))
+    images = cur.fetchall()
+    
+    
+    cur.close()
+    return render_template('home.html', images=images)
+
+
+@app.route('/profile')
+def Profile():
+    cur = conn.cursor()
+    cur.execute('''SELECT
+                        post.postid,
+                        post.postedby,
+                        COUNT(person_likes_post.kerberosid) AS like_count,
+                        post.caption,
+                        (select
+                             COUNT(*) 
+                        FROM 
+                        person_likes_post 
+                        WHERE post.postid = person_likes_post.postid 
+                        AND person_likes_post.kerberosID = %s) AS user_like_count
+                    FROM
+                        post
                         LEFT JOIN person_likes_post ON post.postid = person_likes_post.postid
                         LEFT JOIN person ON person_likes_post.kerberosid = person.kerberosid
                     WHERE
@@ -100,12 +160,12 @@ def Home():
                         AND post.postedby = %s
                     GROUP BY
                         post.postid;
-''', ("ee1210653","ee1210653",))
+''', (session['user_id'],session['user_id'],))
     images = cur.fetchall()
     
     
     cur.close()
-    return render_template('home.html', images=images)
+    return render_template('profile.html', images=images)
 
 
 @app.route('/home/<image_id>', methods=['GET', 'POST'])
@@ -173,8 +233,6 @@ def Chat():
     return render_template("chat.html", messages=messages, name=name, newMessage=newMessage)
 
 
-
-
 @app.route("/chats")
 def Chats():
     with open("static/json/groups.json", "r") as f:
@@ -189,11 +247,50 @@ def Groups():
     return render_template("groups.html", groups=groups)
 
 
-@app.route("/navbar")
-def Navbar():
-    return render_template("index.html" )
 
-if __name__ == "__main__":
+@app.route("/searching" , methods = ['GET' , 'POST'])
+def Search():
+
+    useridstr = request.form['query']
+    # print(useridstr)
+    cur = conn.cursor()
+    cur.execute("SELECT kerberosid, name from person where kerberosid like %s or name like %s ;", (f"%{useridstr}%",f"%{useridstr}%",))
+
+    users = cur.fetchall()
+    return render_template("search.html", users=users)
+
+
+@app.route("/FriendsProfile/<kerberosid>" , methods = ['GET','POST'])
+def FriendsProfile(kerberosid):
+    cur = conn.cursor()
+    cur.execute('''SELECT
+                        post.postid,
+                        post.postedby,
+                        COUNT(person_likes_post.kerberosid) AS like_count,
+                        post.caption,
+                        (select
+                             COUNT(*) 
+                        FROM 
+                        person_likes_post 
+                        WHERE post.postid = person_likes_post.postid 
+                        AND person_likes_post.kerberosID = %s) AS user_like_count
+                    FROM
+                        post
+                        LEFT JOIN person_likes_post ON post.postid = person_likes_post.postid
+                        LEFT JOIN person ON person_likes_post.kerberosid = person.kerberosid
+                    WHERE
+                        post.belongstogroups IS NULL
+                        AND post.postedby = %s
+                    GROUP BY
+                        post.postid;
+''', (session['user_id'],kerberosid,))
+    images = cur.fetchall()
+    
+    
+    cur.close()
+    return render_template('profile.html', images=images)
+
+if __name__ == "__main__": 
     app.run(debug=True)
 
 if __name__ == '__main__':

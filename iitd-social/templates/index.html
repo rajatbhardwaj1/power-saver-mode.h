@@ -1,21 +1,22 @@
 <html>
-
-    <nav class="navbar">
-        <div class="navbar-left">
-            <i class="fa fa-user navbar-icon"></i>
-            <h3 class="navbar-brand">IITD-Social</h3>
-        </div>
-    <div class="navbar-middle">
-        <input type="text" class="navbar-search" placeholder="Search...">
-        <button class="navbar-search-button">
-            <i class="fa fa-search navbar-search-icon"></i>
-        </button>
+  <nav class="navbar">
+    <div class="navbar-left">
+        <i class="fa fa-user navbar-icon"></i>
+        <h3 class="navbar-brand">IITD-Social</h3>
     </div>
-    <div class="navbar-right">
-        <a href="/chats" class="navbar-link">Chats</a>
-        <a href="/groups" class="navbar-link">Groups</a>
-        <a href="/profile" class="navbar-link">Profile</a>
-    </div>
+<div class="navbar-middle">
+  <form id="navbar" class="navbar" method="POST" action="{{ url_for('Search') }}">
+    <input type="text" id = "query" class="navbar-search" name="query" placeholder="Search...">
+    <button class="navbar-search-button">
+      <i class="fa fa-search navbar-search-icon"></i>
+    </button>
+  </form>
+</div>
+<div class="navbar-right">
+    <a href="/chats" class="navbar-link">Chats</a>
+    <a href="/groups" class="navbar-link">Groups</a>
+    <a href="/profile" class="navbar-link">Profile</a>
+</div>
 </nav>
 {% block content %}
 

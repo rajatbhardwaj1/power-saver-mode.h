@@ -1,0 +1,23 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<head>
+  <title>Chats</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+  <script>
+    function redirect(user) {
+      window.location.href = "{{ url_for('FriendsProfile',kerberosid=user   )}}";
+    }
+  </script>
+</head>
+  <h1>Users</h1>
+
+{% for user in users %}
+<div class="search" onclick="redirect(user[0])">
+<p>ID: {{ user[0] }}</p>
+<p>Name: {{ user[1] }}</p>
+</div>
+{% endfor %}
+
+<button onclick="redirect(user[0])">Go to my function</button>
+{% endblock %}

@@ -1,6 +1,11 @@
 {% extends 'index.html' %}
 
 {% block content %}
+<head>
+  <title>Chats</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/comments.css') }}">
+
+</head>
   <h1>Comments</h1>
 
   {% for comment in comments %}
