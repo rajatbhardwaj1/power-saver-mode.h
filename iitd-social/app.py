@@ -1,11 +1,17 @@
-from flask import Flask, flash ,render_template, session,redirect,url_for
+from flask import Flask, Response, flash, jsonify ,render_template, session,redirect,url_for
 from flask import request
 import psycopg2
 import json
+import random 
 
 app = Flask(__name__)
 app.secret_key = 'somesecretkey'
 user = {}
+
+def randomIDcreator(initstring):
+    random_number = random.randint(0, 9999991)
+    return initstring + str(random_number)
+
 
 conn = psycopg2.connect(
     database = 'group_19',
@@ -71,10 +77,88 @@ def Login():
 
 
 
-@app.route("/home", methods = ['GET' , "POST"])
+@app.route('/home')
 def Home():
-    return render_template("home.html",user=session['user_id'])
+    cur = conn.cursor()
+    cur.execute('''SELECT
+                        post.postid,
+                        post.postedby,
+                        COUNT(person_likes_post.kerberosid) AS like_count,
+                        post.caption,
+                        (select
+                             COUNT(*) 
+                        FROM 
+                        person_likes_post 
+                        WHERE post.postid = person_likes_post.postid 
+                        AND person_likes_post.kerberosID = %s) AS user_like_count
+                    FROM
+                        post
+                        LEFT JOIN person_likes_post ON post.postid = person_likes_post.postid
+                        LEFT JOIN person ON person_likes_post.kerberosid = person.kerberosid
+                    WHERE
+                        post.belongstogroups IS NULL
+                        AND post.postedby = %s
+                    GROUP BY
+                        post.postid;
+''', ("ee1210653","ee1210653",))
+    images = cur.fetchall()
+    
+    
+    cur.close()
+    return render_template('home.html', images=images)
 
+
+@app.route('/home/<image_id>', methods=['GET', 'POST'])
+def get_image(image_id):
+    cur = conn.cursor()
+    cur.execute("SELECT image  FROM post WHERE postid = %s", (image_id,))
+
+    image_data = cur.fetchone()[0]
+       
+    cur.close()
+    return Response(image_data, content_type='image/jpeg')
+
+@app.route('/home/likes/<image_id>', methods=['POST'])
+def get_likes(image_id):
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM person_likes_post WHERE kerberosid = %s AND postid = %s", ("ee1210653", image_id))
+    count = cur.fetchone()[0]
+    if count == 0:
+        cur.execute("INSERT INTO person_likes_post (kerberosid, postid) VALUES (%s, %s)", ("ee1210653", image_id))
+    else:
+        cur.execute("DELETE FROM person_likes_post WHERE kerberosid = %s AND postid = %s", ("ee1210653", image_id))
+    conn.commit()
+
+    cur.execute("SELECT COUNT(*) FROM person_likes_post WHERE postid = %s", (image_id,))
+    like_count = cur.fetchone()[0]
+    cur.close()
+
+    return jsonify({'like_count': like_count})
+
+@app.route('/home/comments/<image_id>', methods=['GET', 'POST'])
+def get_comments(image_id):
+    if request.method == 'POST' and 'comment' in request.form:
+        id = randomIDcreator("C")
+        exist = True 
+        while exist:  
+            cur = conn.cursor()
+            cur.execute("select count(*) from comments where commentid = %s;", (id, ))
+            num = cur.fetchone()
+            if num[0] == 0:
+                exist = False  
+            else :
+                id = randomIDcreator("C")
+        comment = request.form['comment']
+        cur = conn.cursor()
+        cur.execute("INSERT INTO comments (commentid, content, creatorpersonid, parentpostid) VALUES (%s, %s, %s, %s)", ( id , comment, session['user_id'], image_id))
+        # conn.commit()
+
+    # Retrieve all comments for the given image ID
+    cur = conn.cursor()
+    cur.execute("SELECT content, creatorpersonid FROM comments WHERE parentpostid = %s", (image_id,))
+    comments = cur.fetchall()
+
+    return render_template('comments.html', comments=comments)
 
 @app.route("/chat", methods = ['GET' , 'POST'])
 def Chat():

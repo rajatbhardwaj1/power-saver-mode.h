@@ -1,3 +1,77 @@
-<html>
-    {{user}}
-</html>
+{% extends 'index.html' %}
+
+{% block content %}
+<head>
+    <title>Groups</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+</head>
+<center>
+
+    <h1>Home</h1>
+</center>
+  {% for image in images %}
+  <center>
+
+    <div class="image-container">
+      <img src="{{ url_for('get_image', image_id=image[0]) }}">
+      <div class="image-info">
+        <h2>{{ image[3] }}</h2>
+        <p>Posted by: {{ image[1] }}</p>
+        
+        <div class="like-container">
+          <form id="like-form-{{ image[0] }}" class="like-form" method="POST" action="{{ url_for('get_likes', image_id=image[0]) }}">
+            <input type="hidden" name="_method" value="POST">
+            <button type="submit" class="like-btn">
+                {% if image[4] == 1 %}Unlike{% else %}Like{% endif %}
+            </button>
+          </form>
+          <form id="comment-form-{{ image[0] }}" class="comment-form" method="POST" action="{{ url_for('get_comments', image_id=image[0]) }}">
+            <input type="hidden" name="_method" value="POST">
+            <button type="submit" class="like-btn">
+                Comments
+            </button>
+          </form>
+          
+          
+          <p class="like-count">{{ image[2] }} likes</p>
+        </div>
+      </div>
+    </div>
+  </center>
+
+  {% endfor %}
+
+  <script>
+    // Add event listeners to all like buttons
+    var likeForms = document.querySelectorAll('.like-form');
+    for (var i = 0; i < likeForms.length; i++) {
+      likeForms[i].addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+        var form = this;
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (this.readyState === 4 && this.status === 200) {
+            var responseData = JSON.parse(this.responseText);
+            var likeCount = responseData.like_count;
+            var likeCountElement = form.parentNode.querySelector('.like-count');
+            likeCountElement.textContent = likeCount + ' likes';
+            var likeBtn = form.parentNode.querySelector('.like-btn');
+            var likeBtnText = likeBtn.textContent;
+            // var likeBtnTextParts = likeBtnText.split(' ');
+            console.log(likeBtnText)
+            if (likeBtnText.trim() === 'Like') {
+              likeBtnText = 'Unlike';
+            } else {
+              likeBtnText = 'Like';
+            }
+            // likeBtnTextParts[1] = likeCount;
+            likeBtn.textContent = likeBtnText;
+          }
+        };
+        xhr.open(form.getAttribute('method'), form.getAttribute('action'), true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send();
+      });
+    }
+  </script>
+{% endblock %}```
