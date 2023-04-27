@@ -1,3 +1,4 @@
+import datetime
 from flask import Flask, Response, flash, jsonify ,render_template, session,redirect,url_for
 from flask import request
 import psycopg2
@@ -221,23 +222,35 @@ def get_comments(image_id):
     return render_template('comments.html', comments=comments)
 
 @app.route("/chat", methods = ['GET' , 'POST'])
-def Chat():
-    messages = [
-        {'message': 'Hello!', 'by': 'sender'},
-        {'message': 'Hi there!', 'by': 'receiver'},
-        {'message': 'How are you?', 'by': 'sender'},
-        {'message': 'I am good, thanks.', 'by': 'receiver'},
-    ]
-    name = 'Rajat'
-    newMessage = ''
-    return render_template("chat.html", messages=messages, name=name, newMessage=newMessage)
+def Chat(user_idOther):
+    user_idCurrent = session['user_id']
+    if request.method == 'GET':
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM chat WHERE sentby = %s AND sentto = %s OR sentby = %s AND sentto = %s ORDER BY time ASC", (user_idCurrent, user_idOther, user_idOther, user_idCurrent))
+        messages = cur.fetchall()
+        cur.close()
+        return render_template("chat.html", messages=messages, name=user_idOther, newMessage='')
+    
+    elif request.method == 'POST':
+        newMessage = request.form['newMessage']
+        if (newMessage != ''):
+            time = datetime.datetime.now()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO chat (sentby, sentto, time, message) VALUES (%s, %s, %s, %s)", (user_idCurrent, user_idOther, time, newMessage))
+            conn.commit()
+            cur.close()
+        return redirect(url_for('Chat', user_idOther=user_idOther))
 
 
 @app.route("/chats")
 def Chats():
-    with open("static/json/groups.json", "r") as f:
-        groups = json.load(f)
-    return render_template("chats.html", groups=groups)
+    user_id = session['user_id']
+    cur = conn.cursor()
+    cur.execute("WITH chatlist AS (SELECT distinct sentby as other FROM chat WHERE sentto = %s UNION SELECT distinct sentto as other FROM chat WHERE sentby = %s) SELECT other FROM chatlist WHERE other != %s", (user_id, user_id, user_id))
+    chats = cur.fetchall()
+    cur.close()
+    return render_template("chats.html", chats=chats)
+
 
 
 @app.route("/groups")
