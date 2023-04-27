@@ -5,50 +5,56 @@
     --text-color: #333;
     --font-size: 16px;
     --border-radius: 5px;
-    --padding: 10px;
+    --padding: 20px;
   }
   
-  .chat-box {
-    width: 800px;
-    height: 90vh;
-    background-color: #fff;
+  /* .chat-box-body {
+    /* width: 1850px; */
+    /* height: 85vh; */
+    /* background-color: #fff;
     border-radius: var(--border-radius);
-    overflow-y: scroll;
-    display: flex;
+    /* overflow-y: scroll; */
+    /* display: flex;
     flex-direction: column;
-    margin: auto;
-  }
-  
-  .chat-box-header {
+    margin: auto; 
+  } 
+   
+  /* .chat-box-header {
     padding: var(--padding);
     font-size: calc(var(--font-size) + 2px);
     font-weight: bold;
     border-bottom: 1px solid var(--secondary-color);
   }
-  
-  .chat-box-body {
+   */
+  /* .chat-box-body {
     padding: var(--padding);
   }
-  
-  .chat-bubble {
+   */
+  .chat-box-body {
     display: block;
-    max-width: 70%;
+    max-width: 100%;
     margin-bottom: 10px;
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 10px;
     font-size: 16px;
-    line-height: 1.4;
-    clear: both;
+    line-height: 1;
+    clear: both; 
+    /* border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    padding: 10px; */
   }
-  .chat-bubble.sent {
-    background-color: var(--primary-color);
+  .chat-bubble-send {
+    background-color: var(--secondary-color);
+    max-width: 70%;
     float: right;
-    color: #fff;
+    /* color: #fff; */
   }
   
-  .chat-bubble.received {
+  .chat-bubble-received {
     background-color: var(--secondary-color);
     float: left;
+    max-width: 70%;
     color: var(--text-color);
   }
 
@@ -56,15 +62,15 @@
     cursor: pointer;
   }
   
-  .chat-box-footer {
+  /* .chat-box-footer {
     padding: var(--padding);
     border-top: 1px solid var(--secondary-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  
-  .chat-box-footer input[type="text"] {
+   */
+  /* .chat-box-footer input[type="text"] {
     flex: 1;
     border: none;
     outline: none;
@@ -92,5 +98,27 @@
   
   .chat-box-footer button i {
     font-size: calc(var(--font-size) + 2px);
+  } */
+
+  form label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  form input[type="text"] {
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+  }
+  
+  form button[type="submit"] {
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
   }
   

@@ -26,6 +26,50 @@ conn = psycopg2.connect(
 
 curr = conn.cursor()
 
+@app.route('/add_friend/<kerberosid>', methods=['POST', 'GET'])
+def add_friend(kerberosid):
+    cur = conn.cursor()
+    conn.rollback()
+    cur.execute("INSERT INTO Friends values(%s, %s)", (session['user_id'], kerberosid))
+    conn.commit()
+
+    cur.close()
+
+    return redirect(url_for('FriendsProfile',kerberosid = kerberosid))
+
+
+@app.route("/group_chat/<group_id>", methods = ['GET' , 'POST'])
+def group_chat(group_id):
+    cur = conn.cursor()
+
+    conn.rollback()
+    cur.execute('''SELECT
+                        post.postid,
+                        post.postedby,
+                        COUNT(person_likes_post.kerberosid) AS like_count,
+                        post.caption,
+                        (select
+                             COUNT(*) 
+                        FROM 
+                        person_likes_post 
+                        WHERE post.postid = person_likes_post.postid 
+                        AND person_likes_post.kerberosID = %s) AS user_like_count
+                    FROM
+                        post
+                        LEFT JOIN person_likes_post ON post.postid = person_likes_post.postid
+                        LEFT JOIN person ON person_likes_post.kerberosid = person.kerberosid
+                    WHERE
+                        post.belongstogroups = %s
+                    GROUP BY
+                        post.postid;
+''', (session['user_id'],group_id,))
+    images = cur.fetchall()
+        
+    
+    cur.close()
+    return render_template('group_chat.html', images=images, group_id = group_id)
+
+
 
 @app.route("/create-account", methods = ['GET' , "POST"])
 def CreateAccount():
@@ -35,7 +79,7 @@ def CreateAccount():
         name = request.form['name']
         gender = request.form['gender']
         hostel = request.form['hostel']
-        
+        conn.rollback()
         curr.execute("select count(*) from person where kerberosid = %s;" , (username, ))
         count = curr.fetchall()
 
@@ -54,24 +98,27 @@ def CreateAccount():
         else :
             session['user_id'] = username 
             session['user_name'] = name 
+            conn.rollback()
             curr.execute("insert into person values(%s,%s,%s%s);", (username, name ,hostel ,gender,))
             conn.commit()
             return redirect(url_for('Home') )
     return render_template("create-account.html")
 
 
-@app.route("/login" , methods = ['POST', 'GET'])
+@app.route("/" , methods = ['POST', 'GET'])
 def Login():
     if request.method != 'POST':
         return render_template("login.html")
     session.pop('user_id' , None)
     username = request.form['username']
     password = request.form['password']
+    conn.rollback()
     curr.execute("SELECT count(*) FROM person WHERE kerberosid = %s;", (username,))
     count = curr.fetchall()
     if count[0][0] != 1:
         flash("Login Failed!",'warning')
         return redirect(url_for('Login') )
+    conn.rollback()
     curr.execute("select name from person where kerberosid=%s;",(username,))
     name = curr.fetchone()
     session['user_id'] = username
@@ -84,6 +131,7 @@ def Login():
 @app.route('/home')
 def Home():
     cur = conn.cursor()
+    conn.rollback()
     cur.execute('''SELECT
                         post.postid,
                         post.postedby,
@@ -138,9 +186,11 @@ def Home():
 @app.route('/profile')
 def Profile():
     cur = conn.cursor()
+    conn.rollback()
     cur.execute("select count(*) from friends where person1 = %s or person2 = %s;" ,(session['user_id'],session['user_id']))
     friends = cur.fetchone()[0]
 
+    conn.rollback()
     cur.execute('''SELECT
                         post.postid,
                         post.postedby,
@@ -157,7 +207,7 @@ def Profile():
                         LEFT JOIN person_likes_post ON post.postid = person_likes_post.postid
                         LEFT JOIN person ON person_likes_post.kerberosid = person.kerberosid
                     WHERE
-                        post.belongstogroups IS NULL
+                        (post.belongstogroups IS NULL or post.belongstogroups = '')
                         AND post.postedby = %s
                     GROUP BY
                         post.postid;
@@ -172,6 +222,7 @@ def Profile():
 @app.route('/home/<image_id>', methods=['GET', 'POST'])
 def get_image(image_id):
     cur = conn.cursor()
+    conn.rollback()
     cur.execute("SELECT image  FROM post WHERE postid = %s", (image_id,))
 
     image_data = cur.fetchone()[0]
@@ -182,14 +233,18 @@ def get_image(image_id):
 @app.route('/home/likes/<image_id>', methods=['POST'])
 def get_likes(image_id):
     cur = conn.cursor()
+    conn.rollback()
     cur.execute("SELECT COUNT(*) FROM person_likes_post WHERE kerberosid = %s AND postid = %s", (session['user_id'], image_id))
     count = cur.fetchone()[0]
     if count == 0:
+        conn.rollback()
         cur.execute("INSERT INTO person_likes_post (kerberosid, postid) VALUES (%s, %s)", (session['user_id'], image_id))
     else:
+        conn.rollback()
         cur.execute("DELETE FROM person_likes_post WHERE kerberosid = %s AND postid = %s", (session['user_id'], image_id))
     conn.commit()
 
+    conn.rollback()
     cur.execute("SELECT COUNT(*) FROM person_likes_post WHERE postid = %s", (image_id,))
     like_count = cur.fetchone()[0]
     cur.close()
@@ -203,6 +258,7 @@ def get_comments(image_id):
         exist = True 
         while exist:  
             cur = conn.cursor()
+            conn.rollback()
             cur.execute("select count(*) from comments where commentid = %s;", (id, ))
             num = cur.fetchone()
             if num[0] == 0:
@@ -211,42 +267,70 @@ def get_comments(image_id):
                 id = randomIDcreator("C")
         comment = request.form['comment']
         cur = conn.cursor()
+        conn.rollback()
         cur.execute("INSERT INTO comments (commentid, content, creatorpersonid, parentpostid) VALUES (%s, %s, %s, %s)", ( id , comment, session['user_id'], image_id))
         conn.commit()
 
     # Retrieve all comments for the given image ID
     cur = conn.cursor()
+    conn.rollback()
     cur.execute("SELECT content, creatorpersonid FROM comments WHERE parentpostid = %s", (image_id,))
     comments = cur.fetchall()
 
     return render_template('comments.html', comments=comments)
 
-@app.route("/chat", methods = ['GET' , 'POST'])
+@app.route("/chat/<user_idOther>", methods = ['GET' , 'POST'])
 def Chat(user_idOther):
     user_idCurrent = session['user_id']
-    if request.method == 'GET':
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM chat WHERE sentby = %s AND sentto = %s OR sentby = %s AND sentto = %s ORDER BY time ASC", (user_idCurrent, user_idOther, user_idOther, user_idCurrent))
-        messages = cur.fetchall()
-        cur.close()
-        return render_template("chat.html", messages=messages, name=user_idOther, newMessage='')
-    
-    elif request.method == 'POST':
-        newMessage = request.form['newMessage']
-        if (newMessage != ''):
-            time = datetime.datetime.now()
+    print(len(user_idOther))
+    # if request.method == 'POST':
+    if request.method == 'POST':
+        id = randomIDcreator("M")
+        exist = True
+        while exist:  
             cur = conn.cursor()
-            cur.execute("INSERT INTO chat (sentby, sentto, time, message) VALUES (%s, %s, %s, %s)", (user_idCurrent, user_idOther, time, newMessage))
-            conn.commit()
-            cur.close()
+            conn.rollback()
+            cur.execute("select count(*) from chatting where messageid = %s;", (id, ))
+            num = cur.fetchone()
+            if num[0] == 0:
+                exist = False  
+            else :
+                id = randomIDcreator("M")
+        newMessage = request.form.get('newMessage')
+       
+        time = datetime.datetime.now()
+        cur = conn.cursor()
+        conn.rollback()
+        cur.execute("INSERT INTO chatting (messageid, sentby, sentto, time, message) VALUES (%s, %s, %s, %s, %s)", (id, user_idCurrent, user_idOther, time, newMessage))
+        conn.commit()
+        cur.close()
         return redirect(url_for('Chat', user_idOther=user_idOther))
+    cur = conn.cursor()
+    conn.rollback()
+    cur.execute("SELECT message, sentby FROM chatting WHERE (sentby = %s AND sentto = %s) OR (sentby = %s AND sentto = %s) ORDER BY time ASC", (user_idCurrent, user_idOther, user_idOther, user_idCurrent))
+    messages = cur.fetchall()
+    cur.close()
+    return render_template("chat.html", messages=messages, name=user_idOther)
+    
+    # elif request.method == 'POST':
+    #     newMessage = request.form['newMessage']
+    #     if (newMessage != ''):
+    #         time = datetime.datetime.now()
+    #         cur = conn.cursor()
+    #         conn.rollback()
+    #         cur.execute("INSERT INTO messages (sentby, sentto, time, messages) VALUES (%s, %s, %s, %s)", (user_idCurrent, user_idOther, time, newMessage))
+    #         conn.commit()
+    #         cur.close()
+    #     return redirect(url_for('Chat', user_idOther=user_idOther))
 
 
 @app.route("/chats")
 def Chats():
     user_id = session['user_id']
     cur = conn.cursor()
-    cur.execute("WITH chatlist AS (SELECT distinct sentby as other FROM chat WHERE sentto = %s UNION SELECT distinct sentto as other FROM chat WHERE sentby = %s) SELECT other FROM chatlist WHERE other != %s", (user_id, user_id, user_id))
+    conn.rollback()
+    # cur.execute("WITH chatlist AS (SELECT distinct sentby as other FROM messages WHERE sentto = %s UNION SELECT distinct sentto as other FROM messages WHERE sentby = %s) SELECT other FROM chatlist WHERE other != %s", (user_id, user_id, user_id))
+    cur.execute("SELECT person2 FROM Friends WHERE Person1 = %s UNION SELECT person1 FROM Friends WHERE Person2 = %s", (session['user_id'], session['user_id']))
     chats = cur.fetchall()
     cur.close()
     return render_template("chats.html", chats=chats)
@@ -256,7 +340,8 @@ def Chats():
 @app.route("/groups")
 def Groups():
     cur = conn.cursor()
-    cur.execute("select title, type from groups join person_belongsto_group on kerberosid = %s and person_belongsto_group.groupid = groups.groupid;" ,(session['user_id'],))
+    conn.rollback()
+    cur.execute("select groups.groupid, title from groups join person_belongsto_group on kerberosid = %s and person_belongsto_group.groupid = groups.groupid;" ,(session['user_id'],))
     groups = cur.fetchall()
     return render_template("groups.html", groups=groups)
 
@@ -268,19 +353,21 @@ def Search():
     useridstr = request.form['query']
     # print(useridstr)
     cur = conn.cursor()
+    conn.rollback()
     cur.execute("SELECT kerberosid, name from person where kerberosid like %s or name like %s ;", (f"%{useridstr}%",f"%{useridstr}%",))
 
     users = cur.fetchall()
     return render_template("search.html", users=users)
 
-@app.route('/post-upload', methods=['GET', 'POST'])
-def post_upload():
+@app.route('/post-upload/<group_id>', methods=['GET', 'POST'])
+def post_upload(group_id):
     if request.method != 'POST':
         return render_template('post_upload.html')
     id = randomIDcreator("P")
     exist = True
     while exist:  
         cur = conn.cursor()
+        conn.rollback()
         cur.execute("select count(*) from post where postid = %s;", (id, ))
         num = cur.fetchone()
         if num[0] == 0:
@@ -295,7 +382,10 @@ def post_upload():
     image_data = buffer.getvalue()
     caption = request.form['caption']
 
-    curr.execute("INSERT INTO post values(%s, %s, %s, %s)" , (id ,image_data, caption, session['user_id']) )
+    if group_id == 'G':
+        group_id = ''
+    conn.rollback()
+    curr.execute("INSERT INTO post values(%s,%s, %s, %s, %s)" , (id ,image_data, caption, session['user_id'], group_id) )
     conn.commit()
     return redirect(url_for('Profile'))
     
@@ -306,11 +396,19 @@ def post_upload():
 def FriendsProfile(kerberosid):
 
     cur = conn.cursor()
+    conn.rollback()
     cur.execute("select count(*) from friends where person1 = %s or person2 = %s;" ,(kerberosid,kerberosid,))
     friends = cur.fetchone()[0]
+    conn.rollback()
     cur.execute("select name from person where kerberosid = %s ;" ,(kerberosid,))
 
     name = cur.fetchone()[0]
+    conn.rollback()
+    cur.execute("select count(*) from friends where (person1 = %s and person2 = %s) or (person2 = %s and person1 = %s);" ,(kerberosid,session['user_id'], kerberosid,session['user_id'],))
+    is_friend = cur.fetchone()[0]
+    conn.rollback()
+
+
     cur.execute('''SELECT
                         post.postid,
                         post.postedby,
@@ -327,14 +425,14 @@ def FriendsProfile(kerberosid):
                         LEFT JOIN person_likes_post ON post.postid = person_likes_post.postid
                         LEFT JOIN person ON person_likes_post.kerberosid = person.kerberosid
                     WHERE
-                        post.belongstogroups IS NULL
+                        (post.belongstogroups IS NULL or post.belongstogroups = '') 
                         AND post.postedby = %s
                     GROUP BY
                         post.postid;
 ''', (session['user_id'],kerberosid,))
     images = cur.fetchall()
     cur.close()
-    return render_template('profile.html',kerberosid=kerberosid,username=name,images=images,friends = friends)
+    return render_template('friends_profile.html',user_id = session['user_id'],is_friend = is_friend,kerberosid=kerberosid,username=name,images=images,friends = friends)
 
 
 

@@ -10,6 +10,10 @@
     <h1>Kerberosid: {{kerberosid}}</h1>
     <h1>Friends : {{friends}}</h1>
     <a href="{{url_for('post_upload', group_id = 'G')}}"><button>Upload</button></a>
+    {% if is_friend == 0 %}
+        <a href="{{url_for('add_friend', kerberosid = kerberosid)}}"><button>Add Friend</button></a>
+    {% endif %}
+
 </center>
   {% for image in images %}
   <center>

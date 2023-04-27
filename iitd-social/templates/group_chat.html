@@ -6,10 +6,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 </head>
 <center>
-    <h1>Name: {{username}}</h1>
-    <h1>Kerberosid: {{kerberosid}}</h1>
-    <h1>Friends : {{friends}}</h1>
-    <a href="{{url_for('post_upload', group_id = 'G')}}"><button>Upload</button></a>
+    <h1>Name: {{group_id}}</h1>
+    <a href="{{url_for('post_upload', group_id = group_id)}}"><button>Upload</button></a>
 </center>
   {% for image in images %}
   <center>

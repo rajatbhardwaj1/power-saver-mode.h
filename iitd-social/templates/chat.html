@@ -10,25 +10,25 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
     </head>
     <body>
-    <div class="chat-box">
-        <div class="chat-box-header">{{ name }}</div>
+        <h2>{{ name }}</h2>
+        {% for message in messages %}
         <div class="chat-box-body">
-            {% for message in messages %}
-            <!-- <div class="text-message"></div> -->
-                <div class="chat-bubble {% if message.by == 'sender' %}sent{% else %}received{% endif %}">
-                    {{ message.message }}
+            {% if message[1] == name %}
+                <div class="chat-bubble-received">
+                    <p>{{ message[0] }}</p>
+
                 </div>
-            <!-- </div> -->
+                {% else %}
+                <div class="chat-bubble-send">
+                    <p>{{ message[0] }}</p>
+                </div>
+                {% endif %}
+        </div>
             {% endfor %}
-        </div>
-        <div class="chat-box-footer">
-            <input type="text" value="{{ newMessage }}" placeholder="Type your message..." />
-            <button><i class="fa fa-send"></i></button>
-        </div>
-    </div>
-    <script>
-        // Add JavaScript code here to handle sending new messages.
-    </script>
+            <form class="chat-box-footer" method = "POST">
+                <input type="text" name="newMessage" id="newMessage" placeholder="Type your message..." ></input>
+                <button type = "submit"><i class="fa fa-send"> SEND</i></button>
+            </form>
 </body>
 </html>
 {% endblock %}

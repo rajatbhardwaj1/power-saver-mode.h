@@ -1,21 +1,23 @@
-<!DOCTYPE html>
 {%  extends "index.html"%}
 {% block content %}
-<html>
 <head>
     <title>Chats</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chats.css') }}">
+    <script>
+        function redirect(chat) {
+          var url = "{{ url_for('Chat', user_idOther='__user_idOther__') }}".replace('__user_idOther__', chat);
+          window.location.href = url;
+        }
+      </script>
 </head>
-<body>
     <div class="container">
         <div class="groups-container">
             {% for chat in chats %}
-            <div class="group-box">
-                <center><div class="group-title">Title: {{ chat.other }}</div></center>
+            <div class="group-box" onclick="redirect('{{ chat[0] }}')">
+                <center><div class="group-title">Friend_id: {{ chat[0] }}</div></center>
             </div>
             {% endfor %}
         </div>
     </div>
-</body>
-</html>
+
 {% endblock %}
