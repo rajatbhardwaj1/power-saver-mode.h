@@ -37,6 +37,17 @@ def add_friend(kerberosid):
 
     return redirect(url_for('FriendsProfile',kerberosid = kerberosid))
 
+@app.route('/remove_friend/<kerberosid>', methods=['POST', 'GET'])
+def remove_friend(kerberosid):
+    cur = conn.cursor()
+    conn.rollback()
+    cur.execute("DELETE from Friends where (person1 = %s and person2 = %s) or (person2 = %s and person1 = %s)", (session['user_id'], kerberosid,session['user_id'], kerberosid))
+    conn.commit()
+
+    cur.close()
+
+    return redirect(url_for('FriendsProfile',kerberosid = kerberosid))
+
 
 @app.route("/group_chat/<group_id>", methods = ['GET' , 'POST'])
 def group_chat(group_id):
