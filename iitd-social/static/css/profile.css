@@ -1,0 +1,17 @@
+  .upload-btn {
+    background-color: #4CAF50; /* Set the background color to a green shade */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease; /* Add a smooth transition effect */
+  }
+  
+  .upload-btn:hover {
+    background-color: #45a049; /* Darken the background color on hover */
+  }

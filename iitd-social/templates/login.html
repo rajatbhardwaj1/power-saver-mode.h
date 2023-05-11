@@ -4,6 +4,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Hello HTML Templates</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/create-account.css') }}">
+
+        {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class=flashes>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
     </head>
     <div>
         <div>
@@ -20,7 +30,7 @@
                     <input type="submit" value="Submit"></input>
                     
                 </form>
-                <a href="{{ url_for('CreateAccount') }}"><button >Create Account</button></a>
+                <a href="{{ url_for('CreateAccount') }}"><button class="create-account-btn">Create Account</button></a>
             </div>
         </div>
     </div>

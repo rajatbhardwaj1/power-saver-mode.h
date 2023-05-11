@@ -2,19 +2,24 @@
 
 {% block content %}
 <head>
-    <title>Groups</title>
+    <title>Profile</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 </head>
 <center>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <h1>Name: {{username}}</h1>
     <h1>Kerberosid: {{kerberosid}}</h1>
     <h1>Friends : {{friends}}</h1>
-    <a href="{{url_for('post_upload', group_id = 'G')}}"><button>Upload</button></a>
-</center>
+    <a href="{{url_for('post_upload', group_id = 'G')}}"><button class="upload-btn">Upload</button></a>
+  </center>
+<div class="row">
+
   {% for image in images %}
+  {% if loop.index <= current%}
   <center>
     <div class="image-container">
-      <img src="{{ url_for('get_image', image_id=image[0]) }}">
+      <img src="{{ url_for('get_image', image_id=image[0]) }}" loading="lazy">
       <div class="image-info">
         <h2>{{ image[3] }}</h2>
         <p>Posted by: {{ image[1] }}</p>
@@ -37,8 +42,11 @@
       </div>
     </div>
   </center>
+  {% endif %}
 
   {% endfor %}
+  </div>
+  <button id="load-more-btn">Load More</button>
 
   <script>
     // Add event listeners to all like buttons
@@ -71,6 +79,32 @@
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.send();
       });
+
     }
+    var current = {{ current }};
+
+$('#load-more-btn').click(function() {
+  $.ajax({
+    url: '/load_more_profile',
+    type: 'GET',
+    data: {
+      current: current
+    },
+    success: function(data) {
+      // console.log(data)
+      // Append the fetched HTML to the image container
+      $('.row').append(data);
+      current += 3; // Increment the current variable by the desired value
+
+      // Hide the load more button if there are no more images
+      if (data.trim() === '') {
+        $('#load-more-btn').hide();
+      }
+    },
+    error: function(error) {
+      console.log('Error:', error);
+    }
+  });
+});
   </script>
 {% endblock %}```

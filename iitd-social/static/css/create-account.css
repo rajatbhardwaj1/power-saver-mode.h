@@ -40,3 +40,19 @@ transition: background-color 0.2s ease;
 input[type="submit"]:hover {
 background-color: #0062cc;
 }
+.create-account-btn {
+  background-color: #45a049; /* Set the background color */
+  border: none; /* Remove border */
+  color: white; /* Set text color */
+  padding: 10px 20px; /* Add padding */
+  text-align: center; /* Align text in the center */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Display as inline block */
+  font-size: 16px; /* Set font size */
+  cursor: pointer; /* Add cursor on hover */
+  border-radius: 5px; /* Add border radius */
+}
+
+.create-account-btn:hover {
+  background-color: #2980b9; /* Change background color on hover */
+}

@@ -2,7 +2,6 @@ import datetime
 from flask import Flask, Response, flash, jsonify ,render_template, session,redirect,url_for
 from flask import request
 import psycopg2
-import json
 import random 
 from PIL import Image
 from io import BytesIO
@@ -25,6 +24,7 @@ conn = psycopg2.connect(
 )
 
 curr = conn.cursor()
+
 
 @app.route('/add_friend/<kerberosid>', methods=['POST', 'GET'])
 def add_friend(kerberosid):
@@ -54,6 +54,9 @@ def group_chat(group_id):
     cur = conn.cursor()
 
     conn.rollback()
+    current = int(request.args.get('current', 3))  # Get the 'current' parameter from the request or default to 3
+    limit = current + 3  # Limit the number of images fetched
+
     cur.execute('''SELECT
                         post.postid,
                         post.postedby,
@@ -72,14 +75,52 @@ def group_chat(group_id):
                     WHERE
                         post.belongstogroups = %s
                     GROUP BY
+                        post.postid
+                    order by
                         post.postid;
 ''', (session['user_id'],group_id,))
     images = cur.fetchall()
         
     
     cur.close()
-    return render_template('group_chat.html', images=images, group_id = group_id)
+    return render_template('group_chat.html', images=images, group_id = group_id,current = current)
 
+@app.route('/load_more_group/<group_id>')
+def load_more_group(group_id):
+    current = int(request.args.get('current'))
+    limit = 3  # Number of additional images to load
+
+    cur = conn.cursor()
+    conn.rollback()
+    cur.execute('''
+        SELECT
+            post.postid,
+            post.postedby,
+            COUNT(person_likes_post.kerberosid) AS like_count,
+            post.caption,
+            (select
+                    COUNT(*) 
+            FROM 
+            person_likes_post 
+            WHERE post.postid = person_likes_post.postid 
+            AND person_likes_post.kerberosID = %s) AS user_like_count
+        FROM
+            post
+            LEFT JOIN person_likes_post ON post.postid = person_likes_post.postid
+            LEFT JOIN person ON person_likes_post.kerberosid = person.kerberosid
+        WHERE
+            post.belongstogroups = %s
+        GROUP BY
+            post.postid
+        order by
+            post.postid
+        LIMIT %s OFFSET %s;
+    ''', (session['user_id'],group_id, limit, current))
+    images = cur.fetchall()
+
+    cur.close()
+    
+    return render_template('load_more.html', images=images)
 
 
 @app.route("/create-account", methods = ['GET' , "POST"])
@@ -111,6 +152,7 @@ def CreateAccount():
             session['user_name'] = name 
             conn.rollback()
             curr.execute("insert into person values(%s,%s,%s%s);", (username, name ,hostel ,gender,))
+            curr.execute("insert into passwords values(%s, %s);", (username, password,))
             conn.commit()
             return redirect(url_for('Home') )
     return render_template("create-account.html")
@@ -124,10 +166,16 @@ def Login():
     username = request.form['username']
     password = request.form['password']
     conn.rollback()
+    curr.execute("select pass from passwords where kerberosid = %s;" , (username,))
+    correct_pass = curr.fetchone()
     curr.execute("SELECT count(*) FROM person WHERE kerberosid = %s;", (username,))
     count = curr.fetchall()
     if count[0][0] != 1:
-        flash("Login Failed!",'warning')
+        flash("Login Failed! User doesnt exist",'warning')
+        return redirect(url_for('Login') )
+    if password != correct_pass[0]:
+        print(password ,correct_pass)
+        flash("Login Failed! Incorrect password",'warning')
         return redirect(url_for('Login') )
     conn.rollback()
     curr.execute("select name from person where kerberosid=%s;",(username,))
@@ -143,6 +191,9 @@ def Login():
 def Home():
     cur = conn.cursor()
     conn.rollback()
+    current = int(request.args.get('current', 3))  # Get the 'current' parameter from the request or default to 3
+    limit = current + 3  # Limit the number of images fetched
+
     cur.execute('''SELECT
                         post.postid,
                         post.postedby,
@@ -164,6 +215,7 @@ def Home():
                         AND friends.person2 = %s
                     GROUP BY
                         post.postid
+                    
                     union
                     SELECT
                         post.postid,
@@ -185,13 +237,112 @@ def Home():
                         post.belongstogroups IS NULL
                         AND friends.person1 = %s
                     GROUP BY
-                        post.postid;
-''', (session['user_id'],session['user_id'],session['user_id'],session['user_id'],))
+                        post.postid
+                    ;
+''', (session['user_id'],session['user_id'],session['user_id'],session['user_id'],  ))
     images = cur.fetchall()
     
-    
+
     cur.close()
-    return render_template('home.html', images=images)
+    return render_template('home.html', images=images, current = current)
+
+
+@app.route('/load_more')
+def load_more():
+    current = int(request.args.get('current'))
+    limit = 3  # Number of additional images to load
+
+    cur = conn.cursor()
+    conn.rollback()
+    cur.execute('''
+        SELECT
+            post.postid,
+            post.postedby,
+            COUNT(person_likes_post.kerberosid) AS like_count,
+            post.caption,
+            (SELECT COUNT(*) 
+             FROM person_likes_post 
+             WHERE post.postid = person_likes_post.postid 
+             AND person_likes_post.kerberosID = %s) AS user_like_count
+        FROM
+            post
+            JOIN person_likes_post ON post.postid = person_likes_post.postid
+            JOIN person ON person_likes_post.kerberosid = person.kerberosid
+            JOIN friends ON friends.person1 = post.postedby
+        WHERE
+            post.belongstogroups IS NULL
+            AND friends.person2 = %s
+        GROUP BY
+            post.postid
+                    
+        UNION
+        
+        SELECT
+            post.postid,
+            post.postedby,
+            COUNT(person_likes_post.kerberosid) AS like_count,
+            post.caption,
+            (SELECT COUNT(*) 
+             FROM person_likes_post 
+             WHERE post.postid = person_likes_post.postid 
+             AND person_likes_post.kerberosID = %s) AS user_like_count
+        FROM
+            post
+            JOIN person_likes_post ON post.postid = person_likes_post.postid
+            JOIN person ON person_likes_post.kerberosid = person.kerberosid
+            JOIN friends ON friends.person2 = post.postedby
+        WHERE
+            post.belongstogroups IS NULL
+            AND friends.person1 = %s
+        GROUP BY
+            post.postid
+        LIMIT %s OFFSET %s;
+    ''', (session['user_id'], session['user_id'], session['user_id'], session['user_id'], limit, current))
+    images = cur.fetchall()
+
+    cur.close()
+    
+    return render_template('load_more.html', images=images)
+
+
+@app.route('/load_more_profile')
+
+def load_more_profile():
+    
+    current = int(request.args.get('current'))
+    limit = 3  # Number of additional images to load
+
+    cur = conn.cursor()
+    conn.rollback()
+    cur.execute('''
+        SELECT
+            post.postid,
+            post.postedby,
+            COUNT(person_likes_post.kerberosid) AS like_count,
+            post.caption,
+            (select
+                    COUNT(*) 
+            FROM 
+            person_likes_post 
+            WHERE post.postid = person_likes_post.postid 
+            AND person_likes_post.kerberosID = %s) AS user_like_count
+        FROM
+            post
+            LEFT JOIN person_likes_post ON post.postid = person_likes_post.postid
+            LEFT JOIN person ON person_likes_post.kerberosid = person.kerberosid
+        WHERE
+            (post.belongstogroups IS NULL or post.belongstogroups = '')
+            AND post.postedby = %s
+        GROUP BY
+            post.postid 
+        order by post.postid
+        LIMIT %s OFFSET %s;
+    ''', (session['user_id'],session['user_id'],limit, current))
+    images = cur.fetchall()
+
+    cur.close()
+    
+    return render_template('load_more.html', images=images)
 
 
 @app.route('/profile')
@@ -200,6 +351,7 @@ def Profile():
     conn.rollback()
     cur.execute("select count(*) from friends where person1 = %s or person2 = %s;" ,(session['user_id'],session['user_id']))
     friends = cur.fetchone()[0]
+    current = int(request.args.get('current', 3))  # Get the 'current' parameter from the request or default to 3
 
     conn.rollback()
     cur.execute('''SELECT
@@ -221,13 +373,14 @@ def Profile():
                         (post.belongstogroups IS NULL or post.belongstogroups = '')
                         AND post.postedby = %s
                     GROUP BY
-                        post.postid;
+                        post.postid
+                    order by post.postid;
 ''', (session['user_id'],session['user_id'],))
     images = cur.fetchall()
         
     
     cur.close()
-    return render_template('profile.html',kerberosid=session['user_id'],username=session['name'], images=images, friends = friends)
+    return render_template('profile.html',kerberosid=session['user_id'],username=session['name'], images=images, friends = friends , current =current)
 
 
 @app.route('/home/<image_id>', methods=['GET', 'POST'])
@@ -323,16 +476,6 @@ def Chat(user_idOther):
     cur.close()
     return render_template("chat.html", messages=messages, name=user_idOther)
     
-    # elif request.method == 'POST':
-    #     newMessage = request.form['newMessage']
-    #     if (newMessage != ''):
-    #         time = datetime.datetime.now()
-    #         cur = conn.cursor()
-    #         conn.rollback()
-    #         cur.execute("INSERT INTO messages (sentby, sentto, time, messages) VALUES (%s, %s, %s, %s)", (user_idCurrent, user_idOther, time, newMessage))
-    #         conn.commit()
-    #         cur.close()
-    #     return redirect(url_for('Chat', user_idOther=user_idOther))
 
 
 @app.route("/chats")
@@ -401,10 +544,10 @@ def post_upload(group_id):
     return redirect(url_for('Profile'))
     
         
-
-
 @app.route("/FriendsProfile/<kerberosid>" , methods = ['GET','POST'])
 def FriendsProfile(kerberosid):
+    current = int(request.args.get('current', 3 ))  # Get the 'current' parameter from the request or default to 3
+    limit = current + 3  # Limit the number of images fetched
 
     cur = conn.cursor()
     conn.rollback()
@@ -439,11 +582,52 @@ def FriendsProfile(kerberosid):
                         (post.belongstogroups IS NULL or post.belongstogroups = '') 
                         AND post.postedby = %s
                     GROUP BY
+                        post.postid
+                    order by 
                         post.postid;
 ''', (session['user_id'],kerberosid,))
     images = cur.fetchall()
     cur.close()
-    return render_template('friends_profile.html',user_id = session['user_id'],is_friend = is_friend,kerberosid=kerberosid,username=name,images=images,friends = friends)
+    return render_template('friends_profile.html',user_id = session['user_id'],is_friend = is_friend,kerberosid=kerberosid,username=name,images=images,friends = friends,current = current)
+
+
+@app.route('/load_more_friends/<kerberosid>')
+def load_more_friends(kerberosid):
+    current = int(request.args.get('current'))
+    limit = 3  # Number of additional images to load
+
+    cur = conn.cursor()
+    conn.rollback()
+    cur.execute('''
+        SELECT
+            post.postid,
+            post.postedby,
+            COUNT(person_likes_post.kerberosid) AS like_count,
+            post.caption,
+            (select
+                    COUNT(*) 
+            FROM 
+            person_likes_post 
+            WHERE post.postid = person_likes_post.postid 
+            AND person_likes_post.kerberosID = %s) AS user_like_count
+        FROM
+            post
+            LEFT JOIN person_likes_post ON post.postid = person_likes_post.postid
+            LEFT JOIN person ON person_likes_post.kerberosid = person.kerberosid
+        WHERE
+            (post.belongstogroups IS NULL or post.belongstogroups = '') 
+            AND post.postedby = %s
+        GROUP BY
+            post.postid
+        order by 
+            post.postid
+        LIMIT %s OFFSET %s
+    ''', (session['user_id'],kerberosid,limit, current))
+    images = cur.fetchall()
+
+    cur.close()
+    
+    return render_template('load_more.html', images=images)
 
 
 

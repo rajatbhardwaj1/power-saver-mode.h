@@ -4,6 +4,10 @@ CREATE TABLE Person (
   hostel varchar,
   gender char(1)
 );
+CREATE TABLE Passwords (
+  kerberosID char(10) PRIMARY KEY,
+  pass varchar
+);
 
 CREATE TABLE Post(postID char(8) PRIMARY KEY,
   image bytea,  
@@ -80,3 +84,5 @@ ALTER TABLE Person_Likes_Comment ADD FOREIGN KEY (commentID) REFERENCES Comments
 ALTER TABLE Friends ADD FOREIGN KEY (person1) REFERENCES Person (kerberosID);
 
 ALTER TABLE Friends ADD FOREIGN KEY (person2) REFERENCES Person (kerberosID);
+
+ALTER TABLE passwords ADD FOREIGN KEY (kerberosID) REFERENCES Person (kerberosID);
