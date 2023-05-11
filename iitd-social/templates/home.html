@@ -13,7 +13,6 @@
     <h1>Home</h1>
 </center>
 <div class="row">
-
   {% for image in images %}
   {% if loop.index <= current%}
   <center>
@@ -36,8 +35,6 @@
                 Comments
             </button>
           </form>
-          
-          
           <p class="like-count">{{ image[2] }} likes</p>
         </div>
       </div>
@@ -70,40 +67,33 @@
   }
 </style>
 
+<script>
+  $(document).on('submit', '.like-form', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+    var form = this;
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+        var responseData = JSON.parse(this.responseText);
+        var likeCount = responseData.like_count;
+        var likeCountElement = form.parentNode.querySelector('.like-count');
+        likeCountElement.textContent = likeCount + ' likes';
+        var likeBtn = form.parentNode.querySelector('.like-btn');
+        var likeBtnText = likeBtn.textContent.trim();
+        if (likeBtnText === 'Like') {
+          likeBtnText = 'Unlike';
+        } else {
+          likeBtnText = 'Like';
+        }
+        likeBtn.textContent = likeBtnText;
+      }
+    };
+    xhr.open(form.getAttribute('method'), form.getAttribute('action'), true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.send();
+  });
 
-  <script>
-    // Add event listeners to all like buttons
-    var likeForms = document.querySelectorAll('.like-form');
-    for (var i = 0; i < likeForms.length; i++) {
-      likeForms[i].addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the default form submission
-        var form = this;
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-          if (this.readyState === 4 && this.status === 200) {
-            var responseData = JSON.parse(this.responseText);
-            var likeCount = responseData.like_count;
-            var likeCountElement = form.parentNode.querySelector('.like-count');
-            likeCountElement.textContent = likeCount + ' likes';
-            var likeBtn = form.parentNode.querySelector('.like-btn');
-            var likeBtnText = likeBtn.textContent;
-            // var likeBtnTextParts = likeBtnText.split(' ');
-            console.log(likeBtnText)
-            if (likeBtnText.trim() === 'Like') {
-              likeBtnText = 'Unlike';
-            } else {
-              likeBtnText = 'Like';
-            }
-            // likeBtnTextParts[1] = likeCount;
-            likeBtn.textContent = likeBtnText;
-          }
-        };
-        xhr.open(form.getAttribute('method'), form.getAttribute('action'), true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.send();
-      });
-    }
-    var current = {{ current }};
+  var current = {{ current }};
 
   $('#load-more-btn').click(function() {
     $.ajax({
@@ -113,12 +103,8 @@
         current: current
       },
       success: function(data) {
-        // console.log(data)
-        // Append the fetched HTML to the image container
         $('.row').append(data);
-        current += 3; // Increment the current variable by the desired value
-
-        // Hide the load more button if there are no more images
+        current += 3;
         if (data.trim() === '') {
           $('#load-more-btn').hide();
         }
@@ -128,5 +114,5 @@
       }
     });
   });
-  </script>
+</script>
 {% endblock %}```

@@ -43,68 +43,79 @@
     </div>
   </center>
   {% endif %}
-
   {% endfor %}
   </div>
-  <button id="load-more-btn">Load More</button>
+  <center>
+    <button id="load-more-btn">Load More</button>
+  </center>
 
-  <script>
-    // Add event listeners to all like buttons
-    var likeForms = document.querySelectorAll('.like-form');
-    for (var i = 0; i < likeForms.length; i++) {
-      likeForms[i].addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the default form submission
-        var form = this;
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-          if (this.readyState === 4 && this.status === 200) {
-            var responseData = JSON.parse(this.responseText);
-            var likeCount = responseData.like_count;
-            var likeCountElement = form.parentNode.querySelector('.like-count');
-            likeCountElement.textContent = likeCount + ' likes';
-            var likeBtn = form.parentNode.querySelector('.like-btn');
-            var likeBtnText = likeBtn.textContent;
-            // var likeBtnTextParts = likeBtnText.split(' ');
-            console.log(likeBtnText)
-            if (likeBtnText.trim() === 'Like') {
-              likeBtnText = 'Unlike';
-            } else {
-              likeBtnText = 'Like';
-            }
-            // likeBtnTextParts[1] = likeCount;
-            likeBtn.textContent = likeBtnText;
-          }
-        };
-        xhr.open(form.getAttribute('method'), form.getAttribute('action'), true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.send();
-      });
 
+  <style>
+    #load-more-btn {
+      background-color: #007BFF; /* Set the background color to a blue shade */
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s ease; /* Add a smooth transition effect */
     }
-    var current = {{ current }};
-
-$('#load-more-btn').click(function() {
-  $.ajax({
-    url: '/load_more_profile',
-    type: 'GET',
-    data: {
-      current: current
-    },
-    success: function(data) {
-      // console.log(data)
-      // Append the fetched HTML to the image container
-      $('.row').append(data);
-      current += 3; // Increment the current variable by the desired value
-
-      // Hide the load more button if there are no more images
-      if (data.trim() === '') {
-        $('#load-more-btn').hide();
+    
+    #load-more-btn:hover {
+      background-color: #0056b3; /* Darken the background color on hover */
+    }
+  </style>
+<script>
+  $(document).on('submit', '.like-form', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+    var form = this;
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+        var responseData = JSON.parse(this.responseText);
+        var likeCount = responseData.like_count;
+        var likeCountElement = form.parentNode.querySelector('.like-count');
+        likeCountElement.textContent = likeCount + ' likes';
+        var likeBtn = form.parentNode.querySelector('.like-btn');
+        var likeBtnText = likeBtn.textContent.trim();
+        if (likeBtnText === 'Like') {
+          likeBtnText = 'Unlike';
+        } else {
+          likeBtnText = 'Like';
+        }
+        likeBtn.textContent = likeBtnText;
       }
-    },
-    error: function(error) {
-      console.log('Error:', error);
-    }
+    };
+    xhr.open(form.getAttribute('method'), form.getAttribute('action'), true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.send();
   });
-});
-  </script>
+
+  var current = {{ current }};
+
+  $('#load-more-btn').click(function() {
+    $.ajax({
+      url: '/load_more_profile',
+      type: 'GET',
+      data: {
+        current: current
+      },
+      success: function(data) {
+        $('.row').append(data);
+        current += 3;
+        if (data.trim() === '') {
+          $('#load-more-btn').hide();
+        }
+      },
+      error: function(error) {
+        console.log('Error:', error);
+      }
+    });
+  });
+</script>
+
 {% endblock %}```

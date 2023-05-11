@@ -1,34 +1,76 @@
-
 <!DOCTYPE html>
-
-{%  extends "index.html"%}
+{% extends "index.html" %}
 {% block content %}
 <html>
-    <head>
-        
-        <title>Chat Box</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
-    </head>
-    <body>
-        <h2>{{ name }}</h2>
+<head>
+    <title>Chat Box</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+</head>
+<body>
+    <center>
+        <h2>{{ user }}</h2>
+    </center>
+    <div id="chat-box-body" class="outer">
         {% for message in messages %}
-        <div class="chat-box-body">
-            {% if message[1] == name %}
-                <div class="chat-bubble-received">
-                    <p>{{ message[0] }}</p>
-
-                </div>
+            <div class="chat-box-body">
+                {% if message[1] == name %}
+                    <div class="chat-bubble-received">
+                        <p>{{ message[0] }}</p>
+                    </div>
                 {% else %}
-                <div class="chat-bubble-send">
-                    <p>{{ message[0] }}</p>
-                </div>
+                    <div class="chat-bubble-send">
+                        <p>{{ message[0] }}</p>
+                    </div>
                 {% endif %}
-        </div>
-            {% endfor %}
-            <form class="chat-box-footer" method = "POST">
-                <input type="text" name="newMessage" id="newMessage" placeholder="Type your message..." ></input>
-                <button type = "submit"><i class="fa fa-send"> SEND</i></button>
-            </form>
+            </div>
+        {% endfor %}
+    </div>
+    <form class="chat-box-footer" method="POST" id="message-form">
+        <input type="text" name="newMessage" id="newMessage" placeholder="Type your message...">
+        <button type="submit"><i class="fa fa-send"> SEND</i></button>
+    </form>
 </body>
+<script>
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        var chatBoxBody = document.getElementById('chat-box-body');
+        var lastChatBubble = chatBoxBody.lastElementChild;
+
+        function scrollToLastChatBubble() {
+            lastChatBubble.scrollIntoView();
+        }
+
+        // Scroll to the last chat bubble on page load
+        scrollToLastChatBubble();
+
+        // Periodically check for new messages
+        setInterval(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/check_messages', true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.newMessage) {
+                        // Append the new message to the chat box
+                        var newChatBubble = document.createElement('div');
+                        if (response.sender === '{{ name }}') {
+                            newChatBubble.className = 'chat-bubble-send';
+                        } else {
+                            newChatBubble.className = 'chat-bubble-received';
+                        }
+                        var messageParagraph = document.createElement('p');
+                        messageParagraph.textContent = response.newMessage;
+                        newChatBubble.appendChild(messageParagraph);
+                        chatBoxBody.appendChild(newChatBubble);
+
+                        // Scroll to the last chat bubble
+                        scrollToLastChatBubble();
+                    }
+                }
+            };
+            xhr.send();
+        }, 2000); // Adjust the interval duration (in milliseconds) as needed
+    });
+</script>
 </html>
 {% endblock %}

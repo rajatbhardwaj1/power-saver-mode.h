@@ -29,7 +29,7 @@
   </center>
 {% endfor %}
 
-<script>
+<!-- <script>
     // Add event listeners to all like buttons
     var likeForms = document.querySelectorAll('.like-form');
     for (var i = 0; i < likeForms.length; i++) {
@@ -38,6 +38,7 @@
         var form = this;
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
+          console.log("1");
           if (this.readyState === 4 && this.status === 200) {
             var responseData = JSON.parse(this.responseText);
             var likeCount = responseData.like_count;
@@ -61,3 +62,4 @@
         xhr.send();
       });
     }
+    </script> -->

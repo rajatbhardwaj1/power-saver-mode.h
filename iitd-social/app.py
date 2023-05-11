@@ -5,8 +5,10 @@ import psycopg2
 import random 
 from PIL import Image
 from io import BytesIO
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 app.secret_key = 'somesecretkey'
 user = {}
 
@@ -84,6 +86,38 @@ def group_chat(group_id):
     
     cur.close()
     return render_template('group_chat.html', images=images, group_id = group_id,current = current)
+
+@socketio.on('new_message')
+def handle_new_message(data):
+    # Extract the necessary data from the received message
+    new_message = data['message']
+    user_idCurrent = session['user_id']
+    user_idOther = data['user_idOther']
+
+    # Process and store the new message in the database
+    id = randomIDcreator("M")
+    exist = True
+    while exist:
+        cur = conn.cursor()
+        conn.rollback()
+        cur.execute("select count(*) from chatting where messageid = %s;", (id,))
+        num = cur.fetchone()
+        if num[0] == 0:
+            exist = False
+        else:
+            id = randomIDcreator("M")
+    time = datetime.datetime.now()
+    cur = conn.cursor()
+    conn.rollback()
+    cur.execute(
+        "INSERT INTO chatting (messageid, sentby, sentto, time, message) VALUES (%s, %s, %s, %s, %s)",
+        (id, user_idCurrent, user_idOther, time, new_message))
+    conn.commit()
+    cur.close()
+
+    # Broadcast the new message to all connected clients
+    emit('message_broadcast', {'message': new_message}, broadcast=True)
+
 
 @app.route('/load_more_group/<group_id>')
 def load_more_group(group_id):
@@ -174,7 +208,6 @@ def Login():
         flash("Login Failed! User doesnt exist",'warning')
         return redirect(url_for('Login') )
     if password != correct_pass[0]:
-        print(password ,correct_pass)
         flash("Login Failed! Incorrect password",'warning')
         return redirect(url_for('Login') )
     conn.rollback()
@@ -446,7 +479,11 @@ def get_comments(image_id):
 @app.route("/chat/<user_idOther>", methods = ['GET' , 'POST'])
 def Chat(user_idOther):
     user_idCurrent = session['user_id']
-    print(len(user_idOther))
+    cur = conn.cursor()
+    conn.rollback()
+    cur.execute("select name from person where kerberosid = %s;",(user_idOther,))
+    other_username = cur.fetchone()
+    # print(other_username)
     # if request.method == 'POST':
     if request.method == 'POST':
         id = randomIDcreator("M")
@@ -474,7 +511,7 @@ def Chat(user_idOther):
     cur.execute("SELECT message, sentby FROM chatting WHERE (sentby = %s AND sentto = %s) OR (sentby = %s AND sentto = %s) ORDER BY time ASC", (user_idCurrent, user_idOther, user_idOther, user_idCurrent))
     messages = cur.fetchall()
     cur.close()
-    return render_template("chat.html", messages=messages, name=user_idOther)
+    return render_template("chat.html", messages=messages, name=user_idOther, user = other_username[0])
     
 
 
