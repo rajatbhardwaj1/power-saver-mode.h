@@ -32,7 +32,11 @@ curr = conn.cursor()
 def add_friend(kerberosid):
     cur = conn.cursor()
     conn.rollback()
+    # if()
+    print(len(session['user_id']))
+    print(len(kerberosid))
     cur.execute("INSERT INTO Friends values(%s, %s)", (session['user_id'], kerberosid))
+    # cur.execute("INSERT INTO Friends values(%s, %s)", ( kerberosid,session['user_id']))
     conn.commit()
 
     cur.close()
@@ -184,6 +188,7 @@ def CreateAccount():
         else :
             session['user_id'] = username 
             session['user_name'] = name 
+            session['name'] = name
             conn.rollback()
             curr.execute("insert into person values(%s,%s,%s%s);", (username, name ,hostel ,gender,))
             curr.execute("insert into passwords values(%s, %s);", (username, password,))
@@ -226,7 +231,9 @@ def Home():
     conn.rollback()
     current = int(request.args.get('current', 3))  # Get the 'current' parameter from the request or default to 3
     limit = current + 3  # Limit the number of images fetched
-
+    cur.execute("select * from friends where person1 = %s;",(session['user_id'],))
+    p = cur.fetchall()
+    print("f",p)
     cur.execute('''SELECT
                         post.postid,
                         post.postedby,
@@ -274,6 +281,7 @@ def Home():
                     ;
 ''', (session['user_id'],session['user_id'],session['user_id'],session['user_id'],  ))
     images = cur.fetchall()
+    
     
 
     cur.close()
