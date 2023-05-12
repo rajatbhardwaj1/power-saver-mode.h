@@ -35,8 +35,16 @@ def add_friend(kerberosid):
     # if()
     print(len(session['user_id']))
     print(len(kerberosid))
+    a = kerberosid
+    b = session['user_id']
+    if a > b:
+        temp = a 
+        a = b 
+        b = temp
+    print(kerberosid , session['user_id'])
+    # cur.execute("INSERT INTO Friends values(%s, %s)", (a ,b))
+    # cur.execute("INSERT INTO Friends values(%s, %s)", (kerberosid,session['user_id']))
     cur.execute("INSERT INTO Friends values(%s, %s)", (session['user_id'], kerberosid))
-    # cur.execute("INSERT INTO Friends values(%s, %s)", ( kerberosid,session['user_id']))
     conn.commit()
 
     cur.close()
@@ -186,11 +194,11 @@ def CreateAccount():
             flash("Please enter your name" , 'warning')
             return redirect(url_for('CreateAccount'))
         else :
-            session['user_id'] = username 
+            session['user_id'] = username
             session['user_name'] = name 
             session['name'] = name
             conn.rollback()
-            curr.execute("insert into person values(%s,%s,%s%s);", (username, name ,hostel ,gender,))
+            curr.execute("insert into person values(%s,%s,%s,%s);", (username, name ,hostel ,gender,))
             curr.execute("insert into passwords values(%s, %s);", (username, password,))
             conn.commit()
             return redirect(url_for('Home') )
@@ -234,6 +242,7 @@ def Home():
     cur.execute("select * from friends where person1 = %s;",(session['user_id'],))
     p = cur.fetchall()
     print("f",p)
+    print(session['user_id'])
     cur.execute('''SELECT
                         post.postid,
                         post.postedby,
@@ -247,16 +256,17 @@ def Home():
                         AND person_likes_post.kerberosID = %s) AS user_like_count
                     FROM
                         post
-                        JOIN person_likes_post ON post.postid = person_likes_post.postid
-                        JOIN person ON person_likes_post.kerberosid = person.kerberosid
-                        JOIN friends on friends.person1 = post.postedby
+                        left JOIN friends on friends.person1 = post.postedby
+                        left JOIN person_likes_post ON post.postid = person_likes_post.postid
+                        left JOIN person ON person_likes_post.kerberosid = person.kerberosid
                     WHERE
-                        post.belongstogroups IS NULL
+                        (post.belongstogroups IS NULL
+                        OR post.belongstogroups = '')
                         AND friends.person2 = %s
                     GROUP BY
                         post.postid
                     
-                    union
+                    union all 
                     SELECT
                         post.postid,
                         post.postedby,
@@ -270,18 +280,19 @@ def Home():
                         AND person_likes_post.kerberosID = %s) AS user_like_count
                     FROM
                         post
-                        JOIN person_likes_post ON post.postid = person_likes_post.postid
-                        JOIN person ON person_likes_post.kerberosid = person.kerberosid
-                        JOIN friends on friends.person2 = post.postedby
+                        left JOIN friends on friends.person2 = post.postedby
+                        left JOIN person_likes_post ON post.postid = person_likes_post.postid
+                        left JOIN person ON person_likes_post.kerberosid = person.kerberosid
                     WHERE
-                        post.belongstogroups IS NULL
+                        (post.belongstogroups IS NULL
+                        OR post.belongstogroups = '')
                         AND friends.person1 = %s
                     GROUP BY
                         post.postid
                     ;
-''', (session['user_id'],session['user_id'],session['user_id'],session['user_id'],  ))
+''', (session['user_id'],session['user_id'],session['user_id'],session['user_id']))
     images = cur.fetchall()
-    
+
     
 
     cur.close()
@@ -311,7 +322,8 @@ def load_more():
             JOIN person ON person_likes_post.kerberosid = person.kerberosid
             JOIN friends ON friends.person1 = post.postedby
         WHERE
-            post.belongstogroups IS NULL
+            (post.belongstogroups IS NULL
+            OR post.belongstogroups = '')
             AND friends.person2 = %s
         GROUP BY
             post.postid
@@ -333,7 +345,8 @@ def load_more():
             JOIN person ON person_likes_post.kerberosid = person.kerberosid
             JOIN friends ON friends.person2 = post.postedby
         WHERE
-            post.belongstogroups IS NULL
+            (post.belongstogroups IS NULL
+            OR post.belongstogroups = '')
             AND friends.person1 = %s
         GROUP BY
             post.postid
